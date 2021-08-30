@@ -1,11 +1,12 @@
 #!/bin/bash
 
 prog=${0##*/}
-ERR_NO_INPUT_FILE_ARG=1
 ERR_INPUT_FILE_DOESNT_EXIST=2
 
 usage () {
-	echo "usage: $prog tsv_file" >&2
+	echo "usage: $prog [TSV_FILE]" >&2
+	echo
+	echo "With no TSV_FILE, or when TSV_FILE is -, read standard input."
 }
 
 err_msg () {
@@ -13,23 +14,25 @@ err_msg () {
 	echo "[$prog] $message" >&2
 }
 
-if [[ $# -eq 0 ]]; then
-	err_msg 'No input file given'
-	usage
-	exit $ERR_NO_INPUT_FILE_ARG
+if [[ $1 == "--help" ]] || [[ $1 == "-h" ]]; then
+	usage && exit
 fi
 
-tsv_file=$1
+tsv_file=${1:--}
 
-if [[ ! -e "$tsv_file" ]]; then
+if [[ "$tsv_file" != "-" ]] && [[ ! -f "$tsv_file" ]]; then
 	err_msg "File '$tsv_file' doesn't exist"
 	exit $ERR_INPUT_FILE_DOESNT_EXIST
 fi
 
 underline_first_line () {
-	local fname=$1
-	sed 's/\r//g; 1{p; s/[^\t]/-/g}' "$fname"
+	sed 's/\r//g; 1{p; s/[^\t]/-/g}'
 }
 
-underline_first_line "$tsv_file" | column --separator=$'\t' --table \
+cat "$tsv_file" | underline_first_line | column --separator=$'\t' --table \
 	--output-width=${COLUMNS:-80}
+
+# Usually when you pipe the output of cat, it shows you are new to the shell,
+# but in it's deliberate.  When tsv_file is -, then it's interpreted by cat as
+# standard input.  By placing cat at the start of a pipeline, I don't have to
+# consider this special case.
