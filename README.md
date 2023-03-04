@@ -4,7 +4,7 @@ Command line utility for pretty printing tsv files (tab separated values).
 
 ```
 $ tsv2table --help
-usage: tsv2table [-h] [-V] [TSV_FILE]
+usage: tsv2table [-h] [-V] [TSV_FILE...]
 
 Output data from tab separated values file (.tsv) as ASCII table. First line is
 assumed to be the header, a row with column labels.
@@ -19,7 +19,7 @@ optional arguments:
 $
 ```
 ```
-$ tsv2table movies.tsv
+$ tsv2table movies.header.tsv movies.tsv
 Year of Release  Title                        Directors
 ---------------  -----                        ---------
 1984             Terminator                   James Cameron

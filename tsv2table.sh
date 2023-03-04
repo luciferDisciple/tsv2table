@@ -1,19 +1,18 @@
 #!/bin/bash
 
 PROG=${0##*/}
-VERSION=1.1.0
-ERR_INPUT_FILE_DOESNT_EXIST=2
+VERSION=1.2.0
 
 usage() {
-	echo "usage: $PROG [-h] [-V] [TSV_FILE]" >&2
+	echo "usage: $PROG [-h] [-V] [TSV_FILE...]" >&2
 }
 
 print_help() {
 	usage
 	cat >&2 <<-END
 	
-	Output data from tab separated values file (.tsv) as ASCII table. First line is
-	assumed to be the header, a row with column labels.
+	Output data from tab separated values files (*.tsv) as ASCII table. First line
+	of the first file is assumed to be the header, a row with column labels.
 
 	positional arguments:
 	  TSV_FILE      Path to the tab separated values file. With no TSV_FILE, read
@@ -54,21 +53,27 @@ while :; do
 	shift
 done
 
-tsv_file="${1:--}"
+declare -a tsv_files=()
 
-if [[ "$tsv_file" != "-" ]] && [[ ! -f "$tsv_file" ]]; then
-	error "File '$tsv_file' doesn't exist"
-	exit $ERR_INPUT_FILE_DOESNT_EXIST
+if [[ $# -eq 0 ]]; then
+	tsv_files=('-')
+else
+	tsv_files=("$@")
+	for file in "${tsv_files[@]}"; do
+		[[ -e "$file" ]] || error "File '$file' doesn't exist"
+	done
 fi
 
 underline_first_line () {
 	sed 's/\r//g; 1{p; s/[^\t]/-/g}'
 }
 
-cat "$tsv_file" | underline_first_line | column --separator=$'\t' --table \
-	--output-width=${COLUMNS:-80}
+cat "${tsv_files[@]}" \
+| underline_first_line \
+| column -t -s $'\t' -c ${COLUMNS:-80}
 
 # Usually when you pipe the output of cat, it shows you are new to the shell,
-# but in it's deliberate.  When tsv_file is -, then it's interpreted by cat as
-# standard input.  By placing cat at the start of a pipeline, I don't have to
+# but in this case it's deliberate.  When tsv_files is -, then it's interpreted
+# by cat as standard input.  By placing cat at the start of a pipeline, I don't
+# have to.
 # consider this special case.
