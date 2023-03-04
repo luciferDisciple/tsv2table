@@ -1,27 +1,63 @@
 #!/bin/bash
 
-prog=${0##*/}
+PROG=${0##*/}
+VERSION=1.1.0
 ERR_INPUT_FILE_DOESNT_EXIST=2
 
-usage () {
-	echo "usage: $prog [TSV_FILE]" >&2
-	echo
-	echo "With no TSV_FILE, or when TSV_FILE is -, read standard input."
+usage() {
+	echo "usage: $PROG [-h] [-V] [TSV_FILE]" >&2
 }
 
-err_msg () {
-	local message="$1"
-	echo "[$prog] $message" >&2
+print_help() {
+	usage
+	cat >&2 <<-END
+	
+	Output data from tab separated values file (.tsv) as ASCII table. First line is
+	assumed to be the header, a row with column labels.
+
+	positional arguments:
+	  TSV_FILE      Path to the tab separated values file. With no TSV_FILE, read
+	                stdin.
+	
+	optional arguments:
+	  -h, --help     display this help and exit
+	  -V, --version  output version information and exit
+	END
 }
 
-if [[ $1 == "--help" ]] || [[ $1 == "-h" ]]; then
-	usage && exit
-fi
+error() {
+	local message="$@"
+	echo "$PROG: error: $message" >&2
+	exit 1
+}
 
-tsv_file=${1:--}
+usage_error() {
+	local message="$@"
+	usage
+	error "$message"
+}
+
+while :; do
+	case "$1" in
+		-h|--help)
+			print_help && exit
+			;;
+		-V|--version)
+			echo $VERSION && exit
+			;;
+		-*)
+			usage_error "unrecognized option: $1"
+			;;
+		*)
+			break
+	esac
+	shift
+done
+
+tsv_file="${1:--}"
 
 if [[ "$tsv_file" != "-" ]] && [[ ! -f "$tsv_file" ]]; then
-	err_msg "File '$tsv_file' doesn't exist"
+	error "File '$tsv_file' doesn't exist"
 	exit $ERR_INPUT_FILE_DOESNT_EXIST
 fi
 

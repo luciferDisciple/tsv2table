@@ -3,6 +3,22 @@
 Command line utility for pretty printing tsv files (tab separated values).
 
 ```
+$ tsv2table --help
+usage: tsv2table [-h] [-V] [TSV_FILE]
+
+Output data from tab separated values file (.tsv) as ASCII table. First line is
+assumed to be the header, a row with column labels.
+
+positional arguments:
+  TSV_FILE      Path to the tab separated values file. With no TSV_FILE, read
+                stdin.
+
+optional arguments:
+  -h, --help     display this help and exit
+  -V, --version  output version information and exit
+$
+```
+```
 $ tsv2table movies.tsv
 Year of Release  Title                        Directors
 ---------------  -----                        ---------
